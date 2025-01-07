@@ -48,8 +48,8 @@ Ensure you have the following installed on your system:
 
 1. **Clone the repository**:  
    ```bash  
-   git clone https://github.com/yourusername/cofounders-connect.git  
-   cd cofounders-connect  
+   git clone https://github.com/codernotme/co.found.git  
+   cd co.found
    ```  
 
 2. **Install dependencies**:  
