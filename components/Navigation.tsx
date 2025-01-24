@@ -1,54 +1,149 @@
-"use client"
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { UserButton } from "@clerk/nextjs"
-import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
+  Link,
+  Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/react";
+import { useState } from "react";
+import { Authenticated, Unauthenticated } from "convex/react";
+import { SignOutButton } from "@clerk/nextjs";
+import NavCont from "./navbar-content";
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard' },
   { href: '/profiles', label: 'Discover' },
   { href: '/applications', label: 'Applications' },
-  { href: '/messages', label: 'Messages' },
 ]
 
-export function Navigation() {
-  const pathname = usePathname()
+export default function MainNavbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const setIsOpen = (isOpen: boolean) => {
+    setIsMenuOpen(isOpen);
+  }
 
   return (
-    <nav className="flex items-center justify-between p-4 bg-gray-900 glass-effect">
-      <Link href="/" className="text-2xl font-bold text-gradient">Co.Found</Link>
-      <div className="flex items-center space-x-4">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-cyan-400 relative",
-              pathname === item.href
-                ? "text-cyan-400"
-                : "text-gray-400"
-            )}
-          >
-            {item.label}
-            {pathname === item.href && (
-              <motion.div
-                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-cyan-400"
-                layoutId="underline"
-              />
-            )}
+    <>
+      <Navbar
+        isBordered
+        onMenuOpenChange={setIsMenuOpen}
+      >
+        {/* Navbar Brand with Logo */}
+        <NavbarBrand>
+          <Link href="/" aria-label="Co.Found">
+            {/* Logo can be added here */}
           </Link>
-        ))}
-        <UserButton 
-          appearance={{
-            elements: {
-              avatarBox: "w-10 h-10 hover-lift",
-            },
-          }} 
-        />
-      </div>
-    </nav>
-  )
-}
+        </NavbarBrand>
 
+        {/* Desktop Navbar Links */}
+        <NavbarContent className="hidden sm:flex gap-4" justify="center">
+          {navItems.map((item) => (
+            <NavbarItem key={item.href}>
+              <Link href={item.href} className="text-gray-300 hover:text-white">
+                {item.label}
+              </Link>
+            </NavbarItem>
+          ))}
+          <NavbarItem>
+            <NavbarItem>
+              <NavCont/>
+            </NavbarItem>
+            <Unauthenticated>
+              <Link href="/auth">
+                <Button className="glass-button" color="secondary" size="md">
+                  Get Started
+                </Button>
+              </Link>
+            </Unauthenticated>
+            <Authenticated>
+                <Dropdown backdrop="blur">
+                  <DropdownTrigger>
+                    <Button variant="bordered">
+                      {/* Icon can be added here */}
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label="Static Actions" variant="faded">
+                    <DropdownItem key="dashboard">
+                      <Link href="/dashboard">
+                        <Button className="glass-button" color="secondary" size="md">
+                          Dashboard
+                        </Button>
+                      </Link>
+                    </DropdownItem>
+                    <DropdownItem key="signout"><SignOutButton/></DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+            </Authenticated>
+          </NavbarItem>
+        </NavbarContent>
+
+        <Authenticated>
+          <Button
+            isIconOnly
+            variant="light"
+            onPress={() => setIsOpen(true)}
+            className="relative md:hidden"
+          >
+            {/* Icon can be added here */}
+          </Button>
+        </Authenticated>
+        {/* Mobile Menu Toggle */}
+        <NavbarMenuToggle
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          className="md:hidden"
+          onPress={() => setIsMenuOpen(!isMenuOpen)}
+        />
+
+        {/* Mobile Menu */}
+        <NavbarMenu className="flex flex-col gap-2">
+          {navItems.map((item) => (
+            <NavbarMenuItem key={item.href}>
+              <Link
+                href={item.href}
+                className="block w-full text-gray-300 hover:text-white"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            </NavbarMenuItem>
+          ))}
+          <NavbarMenuItem>
+            <Unauthenticated>
+              <Link href="/auth">
+                <Button
+                  className="glass-button w-full mt-2"
+                  color="secondary"
+                  size="md"
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </Unauthenticated>
+            <Authenticated>
+              <NavbarMenuItem>
+                <Link href="/dashboard">
+                  <Button className="glass-button" color="secondary" size="md">
+                    Dashboard
+                  </Button>
+                </Link>
+              </NavbarMenuItem>
+              <NavbarMenuItem>
+                <SignOutButton/>
+              </NavbarMenuItem>
+            </Authenticated>
+          </NavbarMenuItem>
+        </NavbarMenu>
+      </Navbar>
+    </>
+  );
+}

@@ -12,7 +12,7 @@ const application = {
   equityOffered: '10-20%',
 }
 
-export default function ApplicationDetail({ params }: { params: { id: string } }) {
+export default function ApplicationDetail() {
   return (
     <div className="container mx-auto p-4">
       <Card className="bg-gray-900 text-white">
