@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.subscription.unsubscribe();
+  }, []);
 
   return (
     <nav className="fixed w-full z-50 backdrop-blur-lg bg-opacity-80 border-b border-gray-700">
@@ -24,13 +38,17 @@ export default function Navbar() {
               <Link to="/features" className="hover:text-cyan-500 transition-colors">Features</Link>
               <Link to="/browse" className="hover:text-cyan-500 transition-colors">Browse</Link>
               <Link to="/contact" className="hover:text-cyan-500 transition-colors">Contact</Link>
-              <Link to="/dashboard" className="hover:text-cyan-500 transition-colors">Dashboard</Link>
-              <Link
-                to="/register"
-                className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-              >
-                Get Started
-              </Link>
+              {isAuthenticated && (
+                <Link to="/dashboard" className="hover:text-cyan-500 transition-colors">Dashboard</Link>
+              )}
+              {!isAuthenticated && (
+                <Link
+                  to="/auth"
+                  className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Get Started
+                </Link>
+              )}
             </div>
           </div>
 
@@ -50,48 +68,16 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link
-              to="/about"
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              to="/features"
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Features
-            </Link>
-            <Link
-              to="/browse"
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Browse
-            </Link>
-            <Link
-              to="/contact"
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
-            </Link>
-            <Link
-              to="/dashboard"
-              className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/register"
-              className="block px-3 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-emerald-500 text-white"
-              onClick={() => setIsOpen(false)}
-            >
-              Get Started
-            </Link>
+            <Link to="/about" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors" onClick={() => setIsOpen(false)}>About</Link>
+            <Link to="/features" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors" onClick={() => setIsOpen(false)}>Features</Link>
+            <Link to="/browse" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors" onClick={() => setIsOpen(false)}>Browse</Link>
+            <Link to="/contact" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors" onClick={() => setIsOpen(false)}>Contact</Link>
+            {isAuthenticated && (
+              <Link to="/dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors" onClick={() => setIsOpen(false)}>Dashboard</Link>
+            )}
+            {!isAuthenticated && (
+              <Link to="/auth" className="block px-3 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-emerald-500 text-white" onClick={() => setIsOpen(false)}>Get Started</Link>
+            )}
           </div>
         </div>
       )}

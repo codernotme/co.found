@@ -7,8 +7,16 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const [userType, setUserType] = useState(searchParams.get('type') || 'founder');
   const [step, setStep] = useState(1);
+  const [error, setError] = useState<string | null>(null);
 
-  const founderFields = [
+  type Field = {
+    name: string;
+    label: string;
+    type: string;
+    options?: string[];
+  };
+
+  const founderFields: Field[] = [
     { name: 'startup_name', label: 'Startup Name', type: 'text' },
     { name: 'startup_description', label: 'Startup Description', type: 'textarea' },
     { name: 'seeking_roles', label: 'Roles You\'re Seeking', type: 'text' },
@@ -16,7 +24,7 @@ export default function Register() {
     { name: 'location', label: 'Location', type: 'text' },
   ];
 
-  const developerFields = [
+  const developerFields: Field[] = [
     { name: 'full_name', label: 'Full Name', type: 'text' },
     { name: 'skills', label: 'Skills', type: 'text' },
     { name: 'experience', label: 'Years of Experience', type: 'number' },
@@ -24,19 +32,35 @@ export default function Register() {
     { name: 'portfolio', label: 'Portfolio URL', type: 'text' },
   ];
 
-  const commonFields = [
+  const commonFields: Field[] = [
     { name: 'email', label: 'Email', type: 'email' },
     { name: 'password', label: 'Password', type: 'password' },
     { name: 'confirm_password', label: 'Confirm Password', type: 'password' },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1) {
-      setStep(2);
-    } else {
-      // Handle form submission
-      console.log('Form submitted');
+    setError(null); // Reset error state
+
+    try {
+      if (step === 1) {
+        // Validate passwords match
+        const passwordField = document.getElementById('password') as HTMLInputElement;
+        const confirmPasswordField = document.getElementById('confirm_password') as HTMLInputElement;
+
+        if (passwordField.value !== confirmPasswordField.value) {
+          setError("Passwords don't match");
+          return;
+        }
+
+        setStep(2);
+      } else {
+        // Simulate form submission
+        console.log('Form submitted');
+        alert('Registration successful!');
+      }
+    } catch {
+      setError('An unknown error occurred. Please try again.');
     }
   };
 
@@ -121,6 +145,7 @@ export default function Register() {
             className="bg-gray-800 p-8 rounded-lg"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               {step === 1 ? (
                 // Step 1: Account Details
                 commonFields.map((field, index) => (
@@ -132,6 +157,7 @@ export default function Register() {
                       type={field.type}
                       id={field.name}
                       className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      required
                     />
                   </div>
                 ))
@@ -147,11 +173,13 @@ export default function Register() {
                         id={field.name}
                         rows={4}
                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        required
                       />
                     ) : field.type === 'select' ? (
                       <select
                         id={field.name}
                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        required
                       >
                         {field.options?.map((option, i) => (
                           <option key={i} value={option.toLowerCase()}>
@@ -164,6 +192,7 @@ export default function Register() {
                         type={field.type}
                         id={field.name}
                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        required
                       />
                     )}
                   </div>

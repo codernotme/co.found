@@ -1,12 +1,20 @@
 import { supabase } from './supabase';
 
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, role: 'founder' | 'developer' | 'moderator') {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
   });
 
   if (error) throw error;
+
+  // Assign role to the user in the profiles table
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .insert({ id: data.user?.id, email, role });
+
+  if (profileError) throw profileError;
+
   return data;
 }
 
@@ -39,4 +47,21 @@ export async function updatePassword(newPassword: string) {
   });
 
   if (error) throw error;
+}
+
+export async function getSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session;
+}
+
+export async function getUserRole(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return data.role;
 }

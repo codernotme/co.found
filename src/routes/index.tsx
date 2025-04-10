@@ -6,6 +6,7 @@ import Features from '../pages/Features';
 import Browse from '../pages/Browse';
 import Contact from '../pages/Contact';
 import Register from '../pages/Register';
+import Auth from '../pages/Auth';
 import DashboardLayout from '../pages/dashboard/DashboardLayout';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import ModeratorDashboard from '../pages/dashboard/ModeratorDashboard';
@@ -22,6 +23,7 @@ export default function AppRoutes() {
       <Route path="/browse" element={<Browse />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/auth" element={<Auth />} />
       
       {/* Dashboard Routes */}
       <Route path="/dashboard" element={<DashboardLayout />}>

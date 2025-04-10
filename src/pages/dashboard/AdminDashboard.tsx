@@ -1,19 +1,55 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { Users, UserCheck, AlertTriangle, Settings, Activity, Shield } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const stats = [
-    { label: 'Total Users', value: '2,451', icon: <Users size={24} className="text-cyan-500" /> },
-    { label: 'Active Projects', value: '186', icon: <Activity size={24} className="text-emerald-500" /> },
-    { label: 'Pending Approvals', value: '24', icon: <UserCheck size={24} className="text-yellow-500" /> },
-    { label: 'Reports', value: '12', icon: <AlertTriangle size={24} className="text-red-500" /> },
-  ];
+  const [stats, setStats] = useState<{ label: string; value: number; icon: JSX.Element }[]>([]);
+  const [recentUsers, setRecentUsers] = useState<{ name: string; type: string; status: string; date: string }[]>([]);
 
-  const recentUsers = [
-    { name: 'John Doe', type: 'Founder', status: 'Active', date: '2024-03-15' },
-    { name: 'Jane Smith', type: 'Developer', status: 'Pending', date: '2024-03-14' },
-    { name: 'Mike Johnson', type: 'Founder', status: 'Active', date: '2024-03-14' },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch stats
+      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*');
+      const { data: projects, error: projectsError } = await supabase.from('projects').select('*');
+      const { data: reports, error: reportsError } = await supabase.from('reports').select('*');
+
+      if (profilesError || projectsError || reportsError) {
+        console.error(profilesError || projectsError || reportsError);
+        return;
+      }
+
+      setStats([
+        { label: 'Total Users', value: profiles.length, icon: <Users size={24} className="text-cyan-500" /> },
+        { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length, icon: <Activity size={24} className="text-emerald-500" /> },
+        { label: 'Pending Approvals', value: profiles.filter(p => p.status === 'pending').length, icon: <UserCheck size={24} className="text-yellow-500" /> },
+        { label: 'Reports', value: reports.length, icon: <AlertTriangle size={24} className="text-red-500" /> },
+      ]);
+
+      // Fetch recent users
+      const { data: recentUsersData, error: recentUsersError } = await supabase
+        .from('profiles')
+        .select('name, role, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (recentUsersError) {
+        console.error(recentUsersError);
+        return;
+      }
+
+      setRecentUsers(
+        recentUsersData.map(user => ({
+          name: user.name || 'N/A',
+          type: user.role,
+          status: user.status || 'Active',
+          date: new Date(user.created_at).toLocaleDateString(),
+        }))
+      );
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <div className="p-6">

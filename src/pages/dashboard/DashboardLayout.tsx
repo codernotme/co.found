@@ -1,22 +1,41 @@
-import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Shield, 
-  Settings, 
-  LogOut,
-  Bell
-} from 'lucide-react';
+"use client";
+import React, { useEffect, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { LayoutDashboard, Users, Shield, Settings, LogOut, Bell } from 'lucide-react';
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchRole() {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session) {
+        navigate('/login');
+        return;
+      }
+
+      const { user } = session.data.session;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      setRole(profile?.role || null);
+    }
+
+    fetchRole();
+  }, [navigate]);
 
   const navigation = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Profile', href: '/dashboard/profile', icon: Users },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'founder', 'developer', 'moderator'] },
+    { name: 'Profile', href: '/dashboard/profile', icon: Users, roles: ['admin', 'founder', 'developer', 'moderator'] },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin', 'founder', 'developer', 'moderator'] },
+    { name: 'Admin Panel', href: '/dashboard/admin', icon: Shield, roles: ['admin'] },
   ];
 
   return (
@@ -30,23 +49,25 @@ export default function DashboardLayout() {
         </div>
         <nav className="p-4">
           <div className="space-y-1">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                    currentPath === item.href
-                      ? 'bg-gray-700 text-white'
-                      : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                  }`}
-                >
-                  <Icon size={20} />
-                  {item.name}
-                </Link>
-              );
-            })}
+            {navigation
+              .filter((item) => item.roles.includes(role || ''))
+              .map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                      currentPath === item.href
+                        ? 'bg-gray-700 text-white'
+                        : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    {item.name}
+                  </Link>
+                );
+              })}
           </div>
         </nav>
       </div>
@@ -61,7 +82,7 @@ export default function DashboardLayout() {
             </button>
           </div>
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 text-red-500 hover:text-red-400">
+            <button className="flex items-center gap-2 text-red-500 hover:text-red-400" onClick={() => supabase.auth.signOut()}>
               <LogOut size={20} />
               Logout
             </button>
